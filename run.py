@@ -131,33 +131,39 @@ def rooturlapp():
 
 @app.route('/getObjects', methods=['GET'])
 def getObjects():
-    # logs all attributes received
-    logger.debug(get_debug_all(request))
-    # gets user agent
-    user_agent = request.headers['user_agent']
-    # gets object name
-    object_name=''
-    if ('name' in request.args):
-        object_name = request.args['name']
-    else:
-        return "Error, must specify a object name with ?name=xxx", 404
+    try: 
+        # logs all attributes received
+        logger.debug(get_debug_all(request))
+        # gets user agent
+        user_agent = request.headers['user_agent']
+        # gets object name
+        object_name=''
+        if ('name' in request.args):
+            object_name = request.args['name']
+        else:
+            return "Error, must specify a object name with ?name=xxx", 404
 
-    if ('Mozilla' in user_agent):
-        logger.info("Treating request as a web request")
+        if ('Mozilla' in user_agent):
+            logger.info("Treating request as a web request")
 
-    key = {'url' : request.url}
-    tmp_dict = None
-    data_dict = None
-    tmp_dict = __getCache(key)
-    if ((tmp_dict == None) or (tmp_dict == '')):
-        logger.debug("Data not found in cache")
-        data_dict = ujson.dumps(__getObjects(object_name))
-        __setCache(key, data_dict, 300)
-    else:
-        logger.debug("Data found in redis, using it directly")
-        data_dict = tmp_dict
+        key = {'url' : request.url}
+        tmp_dict = None
+        data_dict = None
+        tmp_dict = __getCache(key)
+        if ((tmp_dict == None) or (tmp_dict == '')):
+            logger.debug("Data not found in cache")
+            data_dict = ujson.dumps(__getObjects(object_name))
+            __setCache(key, data_dict, 300)
+        else:
+            logger.debug("Data found in redis, using it directly")
+            data_dict = tmp_dict
 
-    return data_dict, 200
+        return data_dict, 200
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return "An error occured, check logDNA for more information", 200
+
 
 
 if __name__ == "__main__":
