@@ -1,0 +1,9 @@
+Flask
+gunicorn
+Jinja2
+psycopg2
+SQLAlchemy
+urllib3
+psycopg2-binary
+ujson
+redis
