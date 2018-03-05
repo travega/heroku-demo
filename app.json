@@ -1,0 +1,31 @@
+{
+  "name": "Demonstration  Heroku",
+  "scripts": {
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "addons": [
+    {"plan": "heroku-postgresql:hobby-dev"}, 
+    {"plan": "heroku-redis:hobby-dev"}  ,
+    {"plan": "redismonitor:free"}  ,
+    {"plan": "papertrail:choklad"},
+    {"plan": "newrelic:wayne"},
+    {"plan": "logdna:quaco"}
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "env":
+    {
+      "APP_ENV": {
+        "Description" : "environment type",
+        "value" : "STAGING",
+        "required" : true
+      }
+  }
+}
