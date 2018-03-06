@@ -25,11 +25,11 @@
     {
       "NEW_RELIC_CONFIG_FILE": {
         "Description" : "new relic path",
-        "value" : "newrelic.ini",
+        "value" : "/app/newrelic.ini",
         "required" : true
       },
       "STAGING_DATABASE_URL": {
         "required" : true
-      },
+      }
   }
 }
