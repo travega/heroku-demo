@@ -155,9 +155,6 @@ def rooturlapp():
         return "An error occured, check logDNA for more information", 200
 
 
-
-
-
 @app.route('/error', methods=['GET'])
 def error():
     logger.debug(get_debug_all(request))
