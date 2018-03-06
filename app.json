@@ -1,7 +1,8 @@
 {
   "name": "Demonstration  Heroku",
   "scripts": {
-  },
+      "postdeploy": "pg_dump $STAGING_DATABASE_URL | psql $DATABASE_URL; newrelic-admin generate-config $NEW_RELIC_LICENSE_KEY newrelic.ini"
+    },
   "formation": {
     "web": {
       "quantity": 1
@@ -22,10 +23,13 @@
   ],
   "env":
     {
-      "APP_ENV": {
-        "Description" : "environment type",
-        "value" : "STAGING",
+      "NEW_RELIC_CONFIG_FILE": {
+        "Description" : "new relic path",
+        "value" : "newrelic.ini",
         "required" : true
-      }
+      },
+      "STAGING_DATABASE_URL": {
+        "required" : true
+      },
   }
 }
