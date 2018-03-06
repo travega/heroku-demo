@@ -153,7 +153,10 @@ def getObjects():
             return "Error, must specify a object name with ?name=xxx", 404
 
         if ('Mozilla' in user_agent):
-            logger.info("Treating request as a web request")
+            logger.info("Treating request as a web request, output to Web page")
+        else:
+            logger.info("Treating request as an API request, output to Json only")
+            
 
         key = {'url' : request.url}
         tmp_dict = None
