@@ -1,7 +1,7 @@
 {
   "name": "Demonstration  Heroku",
   "scripts": {
-      "postdeploy": "pg_dump $STAGING_DATABASE_URL | psql $DATABASE_URL; newrelic-admin generate-config $NEW_RELIC_LICENSE_KEY newrelic.ini"
+      "postdeploy": "pg_dump $STAGING_DATABASE_URL | psql $DATABASE_URL; cp newrelic.ini.template newrelic.ini; newrelic-admin generate-config $NEW_RELIC_LICENSE_KEY newrelic.ini"
     },
   "formation": {
     "web": {
