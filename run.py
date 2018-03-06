@@ -8,6 +8,9 @@ from sqlalchemy.orm import sessionmaker
 import ujson
 import redis 
 
+RENDER_INDEX="index.html"
+STATIC_URL_PATH = "static/"
+
 # log activation
 def logger_init(loggername='app', filename='', debugvalue='debug', flaskapp=None):
     global logger
@@ -52,8 +55,6 @@ REDIS_URL = os.getenv('REDIS_URL','')
 REDIS_CONN = None 
 DATABASE_URL = os.getenv('DATABASE_URL','')
 MANUAL_ENGINE_POSTGRES = None
-# postgres
-
 
 
 app = Flask(__name__) 
@@ -112,13 +113,19 @@ def __getObjects(tableName):
         return {'data' :  __resultToDict(result)}
     return {'data' : []}
 
+def __getTables():
+    if (MANUAL_ENGINE_POSTGRES != None):
+        sqlRequest = "SELECT table_schema,table_name FROM information_schema.tables where table_schema like '%%alesforce' ORDER BY table_schema,table_name"
+        result = MANUAL_ENGINE_POSTGRES.execute(sqlRequest)
+        return {'data' :  __resultToDict(result)}
+    return {'data' : []}
+
 
 def get_debug_all(request):
     str_debug = '* url: {}\n* method:{}\n'.format(request.url, request.method)
     str_debug += '* Args:\n'
     for entry in request.args:
         str_debug = str_debug + '\t* {} = {}\n'.format(entry, request.args[entry])
-    # str_debug = str_debug + '\t* {}\n'.format(request.args)
     str_debug += '* Headers:\n'
     for entry in request.headers:
         str_debug = str_debug + '\t* {} = {}\n'.format(entry[0], entry[1])
@@ -126,8 +133,32 @@ def get_debug_all(request):
 
 @app.route('/', methods=['GET'])
 def rooturlapp():
-    logger.debug(get_debug_all(request))
-    return "Hello you", 200
+    try :
+        logger.debug(get_debug_all(request))
+
+        key = {'url' : request.url}
+        tmp_dict = None
+        data_dict = None
+        tmp_dict = __getCache(key)
+        if ((tmp_dict == None) or (tmp_dict == '')):
+            logger.debug("Data not found in cache")
+            data_dict = __getTables()
+            __setCache(key, ujson.dumps(data_dict), 300)
+        else:
+            logger.debug("Data found in redis, using it directly")
+            data_dict = ujson.loads(tmp_dict)
+        return render_template(RENDER_INDEX,
+                            entries=data_dict['data'])
+
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return "An error occured, check logDNA for more information", 200
+
+
+
+
 
 @app.route('/error', methods=['GET'])
 def error():
@@ -137,6 +168,9 @@ def error():
     if ('error_code' in request.args):
         error_code = int(request.args['error_code'])
     return "Error !!!!!!",error_code
+
+
+
 
 @app.route('/getObjects', methods=['GET'])
 def getObjects():
