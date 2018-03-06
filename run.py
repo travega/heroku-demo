@@ -120,8 +120,6 @@ def __getTables():
         
     return {'data' : [], "columns": []}
 
-
-
 def get_debug_all(request):
     str_debug = '* url: {}\n* method:{}\n'.format(request.url, request.method)
     str_debug += '* Args:\n'
@@ -151,7 +149,6 @@ def rooturlapp():
         return render_template(RENDER_INDEX,
                             entries=data_dict['data'])
 
-
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -171,7 +168,6 @@ def error():
     return "Error !!!!!!",error_code
 
 
-
 @app.route('/getObjects', methods=['GET'])
 def getObjects():
     try: 
@@ -186,7 +182,6 @@ def getObjects():
         else:
             return "Error, must specify a object name with ?name=xxx", 404
             
-
         key = {'url' : request.url}
         tmp_dict = None
         data_dict = None
