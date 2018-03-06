@@ -9,6 +9,7 @@ import ujson
 import redis 
 
 RENDER_INDEX="index.html"
+RENDER_TABLE_DATA="table_data.html"
 STATIC_URL_PATH = "static/"
 
 # log activation
@@ -89,9 +90,7 @@ def __resultToDict(result):
         for column in column_names:
             resDic[column] = entry[column]
         arrayData.append(resDic)
-    
-    return arrayData
-
+    return {'data' : arrayData, 'columns': column_names}
 
 def __getCache(key):
     if (REDIS_CONN != None):
@@ -105,20 +104,22 @@ def __setCache(key, data, ttl):
         REDIS_CONN.set(key, data)
         REDIS_CONN.expire(key, ttl)
 
-
 def __getObjects(tableName):
     if (MANUAL_ENGINE_POSTGRES != None):
         concat = 'Salesforce.' + tableName
         result = MANUAL_ENGINE_POSTGRES.execute("select * from {}".format(concat))
-        return {'data' :  __resultToDict(result)}
-    return {'data' : []}
+        return __resultToDict(result)
+        
+    return {'data' : [], "columns": []}
 
 def __getTables():
     if (MANUAL_ENGINE_POSTGRES != None):
         sqlRequest = "SELECT table_schema,table_name FROM information_schema.tables where table_schema like '%%alesforce' ORDER BY table_schema,table_name"
         result = MANUAL_ENGINE_POSTGRES.execute(sqlRequest)
-        return {'data' :  __resultToDict(result)}
-    return {'data' : []}
+        return __resultToDict(result)
+        
+    return {'data' : [], "columns": []}
+
 
 
 def get_debug_all(request):
@@ -142,7 +143,7 @@ def rooturlapp():
         tmp_dict = __getCache(key)
         if ((tmp_dict == None) or (tmp_dict == '')):
             logger.debug("Data not found in cache")
-            data_dict = __getTables()
+            data_dict  = __getTables()
             __setCache(key, ujson.dumps(data_dict), 300)
         else:
             logger.debug("Data found in redis, using it directly")
@@ -171,7 +172,6 @@ def error():
 
 
 
-
 @app.route('/getObjects', methods=['GET'])
 def getObjects():
     try: 
@@ -185,11 +185,6 @@ def getObjects():
             object_name = request.args['name']
         else:
             return "Error, must specify a object name with ?name=xxx", 404
-
-        if ('Mozilla' in user_agent):
-            logger.info("Treating request as a web request, output to Web page")
-        else:
-            logger.info("Treating request as an API request, output to Json only")
             
 
         key = {'url' : request.url}
@@ -198,13 +193,24 @@ def getObjects():
         tmp_dict = __getCache(key)
         if ((tmp_dict == None) or (tmp_dict == '')):
             logger.debug("Data not found in cache")
-            data_dict = ujson.dumps(__getObjects(object_name))
-            __setCache(key, data_dict, 300)
+            data_dict  =__getObjects(object_name) 
+            __setCache(key, ujson.dumps(data_dict), 300)
         else:
             logger.debug("Data found in redis, using it directly")
-            data_dict = tmp_dict
+            data_dict = ujson.loads(tmp_dict)
 
-        return data_dict, 200
+        logger.info(data_dict)
+        logger.info(data_dict['data'])
+        if ('Mozilla' in user_agent):
+            logger.info("Treating request as a web request, output to Web page")
+            return render_template(RENDER_TABLE_DATA,
+                            columns=data_dict['columns'],
+                            object_name=object_name,
+                            entries = data_dict['data'])
+        else:
+            logger.info("Treating request as an API request, output to Json only")
+            return data_dict, 200
+
     except Exception as e:
         import traceback
         traceback.print_exc()
