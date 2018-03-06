@@ -129,6 +129,15 @@ def rooturlapp():
     logger.debug(get_debug_all(request))
     return "Hello you", 200
 
+@app.route('/error', methods=['GET'])
+def error():
+    logger.debug(get_debug_all(request))
+    logger.debug("Generating Error")
+    error_code = 500
+    if ('error_code' in request.args):
+        error_code = int(request.args['error_code'])
+    return "Error !!!!!!",error_code
+
 @app.route('/getObjects', methods=['GET'])
 def getObjects():
     try: 
@@ -169,6 +178,7 @@ def getObjects():
 if __name__ == "__main__":
     app.debug = True
     app.run(host='0.0.0.0', port=int(PORT))
+
 
 
 
