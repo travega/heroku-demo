@@ -29,5 +29,16 @@
       "STAGING_DATABASE_URL": {
         "required" : true
       }
+  },
+  "environments": {
+    "test": {
+      "env": {
+        "ENVIRONMENT_TYPE": "THIS IS A DEMO ENVIRONMENT"
+      },
+      "scripts": {
+        "test-setup": "gem install rubocop",
+        "test": "rubocop ."
+      }
+    }
   }
 }
