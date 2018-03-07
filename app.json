@@ -36,8 +36,8 @@
         "ENVIRONMENT_TYPE": "THIS IS A DEMO ENVIRONMENT"
       },
       "scripts": {
-        "test-setup": "gem install rubocop",
-        "test": "rubocop ."
+        "test-setup": "echo 'Running test script'",
+        "test": "python tests.py"
       }
     }
   }
