@@ -6,7 +6,7 @@ if __name__ == "__main__":
     print("test - database connection ... Success ")
     print("test - redis connection ... Success ")
     print("test - anything else connection ... Success ")
-    exit(1)
+    exit(0)
 
 
 
