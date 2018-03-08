@@ -23,7 +23,7 @@ def logger_init(loggername='app', filename='', debugvalue='debug', flaskapp=None
     # création d'un formateur qui va ajouter le temps, le niveau
     # de chaque message quand on écrira un message dans le log
     format_string = "{'%(asctime)s','%(levelname)s',%(process)s,%(filename)s:%(lineno)s-%(funcName)s:-->%(message)s}"
-    log_formatter = logging.Formatter(format_string, datefmt='%Y-%m-%d %H:%M:%S')
+    log_formatter = logging.Formatter(format_string, datefmt='%Y-%m-%d %H:%M:%S.%f')
 
     numeric_level = getattr(logging, debugvalue.upper(), None)
     if not isinstance(numeric_level, int):
@@ -86,7 +86,7 @@ def __resultToDict(result):
     column_names = [desc[0] for desc in result.cursor.description]
 
     for entry in result:
-        logger.debug(entry)
+        #logger.debug(entry)
         resDic = {}
         for column in column_names:
             resDic[column] = entry[column]
