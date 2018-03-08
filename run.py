@@ -132,7 +132,7 @@ def get_debug_all(request):
     return str_debug
 
 @app.route('/', methods=['GET'])
-def rooturlapp():
+def root():
     try :
         logger.debug(get_debug_all(request))
 
