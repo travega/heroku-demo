@@ -1,5 +1,5 @@
 {
-  "name": "Demonstration  Heroku",
+  "name": "Demonstration Heroku",
   "scripts": {
       "postdeploy": "pg_dump $STAGING_DATABASE_URL | psql $DATABASE_URL; cp newrelic.ini.template newrelic.ini; newrelic-admin generate-config $NEW_RELIC_LICENSE_KEY newrelic.ini"
     },
@@ -10,9 +10,7 @@
   },
   "addons": [
     {"plan": "heroku-postgresql:hobby-dev"}, 
-    {"plan": "redismonitor:free"},
-    {"plan": "newrelic:wayne"},
-    {"plan": "logdna:quaco"}
+    {"plan": "heroku-redis:hobby-dev"}
   ],
   "buildpacks": [
     {
