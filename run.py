@@ -71,11 +71,12 @@ if (DATABASE_URL != ''):
     Base.metadata.bind = MANUAL_ENGINE_POSTGRES
     dbSession_postgres = sessionmaker(bind=MANUAL_ENGINE_POSTGRES)
     session_postgres = dbSession_postgres()
-    logger.debug("{} - Initialization done Postgresql ".format(datetime.now()))
+    logger.info("{} - Initialization done Postgresql ".format(datetime.now()))
 if (REDIS_URL != ''):
     REDIS_CONN = redis.from_url(REDIS_URL)
     REDIS_CONN.set('key','value')
     REDIS_CONN.expire('key', 300) # 5 minutes
+    logger.info("{}  - Initialization done Redis" .format(datetime.now()))
 
 
 def __resultToDict(result):
@@ -94,13 +95,13 @@ def __resultToDict(result):
 
 def __getCache(key):
     if (REDIS_CONN != None):
-        logger.debug('Reading in Redis')
+        logger.info('Reading in Redis')
         return REDIS_CONN.get(key)
     return None 
 
 def __setCache(key, data, ttl):
     if (REDIS_CONN != None):
-        logger.debug('Storing in Redis')
+        logger.info('Storing in Redis')
         REDIS_CONN.set(key, data)
         REDIS_CONN.expire(key, ttl)
 
@@ -140,11 +141,11 @@ def rooturlapp():
         data_dict = None
         tmp_dict = __getCache(key)
         if ((tmp_dict == None) or (tmp_dict == '')):
-            logger.debug("Data not found in cache")
+            logger.info("Data not found in cache")
             data_dict  = __getTables()
             __setCache(key, ujson.dumps(data_dict), 300)
         else:
-            logger.debug("Data found in redis, using it directly")
+            logger.info("Data found in redis, using it directly")
             data_dict = ujson.loads(tmp_dict)
         return render_template(RENDER_INDEX,
                             entries=data_dict['data'])
@@ -158,7 +159,7 @@ def rooturlapp():
 @app.route('/error', methods=['GET'])
 def error():
     logger.debug(get_debug_all(request))
-    logger.debug("Generating Error")
+    logger.error("Generating Error")
     error_code = 500
     if ('error_code' in request.args):
         error_code = int(request.args['error_code'])
@@ -184,15 +185,14 @@ def getObjects():
         data_dict = None
         tmp_dict = __getCache(key)
         if ((tmp_dict == None) or (tmp_dict == '')):
-            logger.debug("Data not found in cache")
+            logger.info("Data not found in cache")
             data_dict  =__getObjects(object_name) 
             __setCache(key, ujson.dumps(data_dict), 300)
         else:
-            logger.debug("Data found in redis, using it directly")
+            logger.info("Data found in redis, using it directly")
             data_dict = ujson.loads(tmp_dict)
 
-        logger.info(data_dict)
-        logger.info(data_dict['data'])
+
         if ('Mozilla' in user_agent):
             logger.info("Treating request as a web request, output to Web page")
             return render_template(RENDER_TABLE_DATA,
