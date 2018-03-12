@@ -7,10 +7,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import ujson
 import redis 
+import uuid
 
 RENDER_INDEX="index.html"
 RENDER_TABLE_DATA="table_data.html"
 STATIC_URL_PATH = "static/"
+
 
 # log activation
 def logger_init(loggername='app', filename='', debugvalue='debug', flaskapp=None):
@@ -56,6 +58,8 @@ REDIS_URL = os.getenv('REDIS_URL','')
 REDIS_CONN = None 
 DATABASE_URL = os.getenv('DATABASE_URL','')
 MANUAL_ENGINE_POSTGRES = None
+SALESFORCE_SCHEMA = os.getenv("POSTGRES_SCHEMA", "salesforce")
+HEROKU_LOGS_TABLE = os.getenv("HEROKU_LOGS_TABLE", "heroku_logs__c") 
 
 
 app = Flask(__name__) 
@@ -78,6 +82,36 @@ if (REDIS_URL != ''):
     REDIS_CONN.expire('key', 300) # 5 minutes
     logger.info("{}  - Initialization done Redis" .format(datetime.now()))
 
+
+def __saveLogEntry(request):
+    if (MANUAL_ENGINE_POSTGRES != None):
+        url = request.url
+        useragent = request.headers['user-agent']
+        externalid = uuid.uuid4().__str__()
+        creationdate  = datetime.now()
+
+        sqlRequest = "insert into salesforce.heroku_logs__c (name, url__c, creationdate__c, externalid__c, useragent__c) values ( %(name)s, %(url)s, %(creationdate)s, %(externalid)s, %(useragent)s ) "
+
+        result = MANUAL_ENGINE_POSTGRES.execute(sqlRequest,
+                    {'tablename' : SALESFORCE_SCHEMA + '.' + HEROKU_LOGS_TABLE,
+                    'url' : url,
+                    'name' : externalid,
+                    'creationdate':creationdate,
+                    'externalid' : externalid,
+                    'useragent':useragent} )    
+
+def __checkHerokuLogsTable():
+    hasDatabase = False
+    
+    if (MANUAL_ENGINE_POSTGRES != None):
+       sqlRequest = 'SELECT EXISTS( SELECT * FROM information_schema.tables  WHERE table_schema = %(schema)s AND table_name = %(tablename)s ) '
+       result = MANUAL_ENGINE_POSTGRES.execute(sqlRequest, {'schema' : SALESFORCE_SCHEMA, 'tablename' : HEROKU_LOGS_TABLE} )
+       for entry in result:
+           logger.info(entry['exists'])
+           hasDatabase = entry['exists']
+    return hasDatabase
+
+    return False
 
 def __resultToDict(result):
     from collections import namedtuple
@@ -107,7 +141,7 @@ def __setCache(key, data, ttl):
 
 def __getObjects(tableName):
     if (MANUAL_ENGINE_POSTGRES != None):
-        concat = 'Salesforce.' + tableName
+        concat = SALESFORCE_SCHEMA + "." + tableName
         result = MANUAL_ENGINE_POSTGRES.execute("select * from {}".format(concat))
         return __resultToDict(result)
         
@@ -134,8 +168,11 @@ def get_debug_all(request):
 @app.route('/', methods=['GET'])
 def root():
     try :
-        logger.debug(get_debug_all(request))
+        if (__checkHerokuLogsTable()):
+            __saveLogEntry(request)
 
+        logger.debug(get_debug_all(request))
+        """
         key = {'url' : request.url}
         tmp_dict = None
         data_dict = None
@@ -147,6 +184,9 @@ def root():
         else:
             logger.info("Data found in redis, using it directly")
             data_dict = ujson.loads(tmp_dict)
+        """
+        data_dict  = __getTables()
+        
         return render_template(RENDER_INDEX,
                             entries=data_dict['data'])
 
@@ -158,6 +198,10 @@ def root():
 
 @app.route('/error', methods=['GET'])
 def error():
+    if (__checkHerokuLogsTable()):
+        __saveLogEntry(request)
+
+
     logger.debug(get_debug_all(request))
     logger.error("Generating Error")
     error_code = 500
@@ -169,6 +213,8 @@ def error():
 @app.route('/getObjects', methods=['GET'])
 def getObjects():
     try: 
+        if (__checkHerokuLogsTable()):
+            __saveLogEntry(request)
         # logs all attributes received
         logger.debug(get_debug_all(request))
         # gets user agent
@@ -187,7 +233,8 @@ def getObjects():
         if ((tmp_dict == None) or (tmp_dict == '')):
             logger.info("Data not found in cache")
             data_dict  =__getObjects(object_name) 
-            __setCache(key, ujson.dumps(data_dict), 300)
+            if (HEROKU_LOGS_TABLE not in request.url): # we don't want to cache these logs
+                __setCache(key, ujson.dumps(data_dict), 300)
         else:
             logger.info("Data found in redis, using it directly")
             data_dict = ujson.loads(tmp_dict)

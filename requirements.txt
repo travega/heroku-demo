@@ -8,3 +8,4 @@ psycopg2-binary
 ujson
 redis
 newrelic
+uuid
