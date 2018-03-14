@@ -265,13 +265,15 @@ def getObjects():
 
         else:
             logger.info("Data found in redis, using it directly")
+            logger.info(tmp_dict)
             if (output == 'html'):
             #data_dict = ujson.loads(tmp_dict)
                 data = tmp_dict.decode('utf-8')
             else:
-                data = ujson.loads(tmp_dict)
+                #data = ujson.loads(tmp_dict)
+                data = tmp_dict
 
-
+        logger.info("returning data")
         return data, 200
 
     except Exception as e:
