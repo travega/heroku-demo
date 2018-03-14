@@ -9,3 +9,4 @@ ujson
 redis
 newrelic
 uuid
+flask-bootstrap
