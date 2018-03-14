@@ -8,7 +8,9 @@ from sqlalchemy.orm import sessionmaker
 import ujson
 import redis 
 import uuid
+from flask_bootstrap import Bootstrap
 
+RENDER_INDEX_BOOTSTRAP="index_bootstrap.html"
 RENDER_INDEX="index.html"
 RENDER_TABLE_DATA="table_data.html"
 STATIC_URL_PATH = "static/"
@@ -63,7 +65,7 @@ HEROKU_LOGS_TABLE = os.getenv("HEROKU_LOGS_TABLE", "heroku_logs__c")
 
 
 app = Flask(__name__) 
-
+Bootstrap(app)
 logger_init(loggername='app',
             filename="log.log",
             debugvalue="DEBUG",
