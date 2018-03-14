@@ -1,5 +1,5 @@
 body {
-	background: #7dc6ed url(https://jackrugile.com/images/misc/noise-diagonal.png);
+	background: #7dc6ed ;
 	color: #444;
 	font: 100%/30px 'Helvetica Neue', helvetica, arial, sans-serif;
 	text-shadow: 0 1px 0 #fff;
@@ -25,7 +25,7 @@ table {
 }
 
 th {
-	background: url(https://jackrugile.com/images/misc/noise-diagonal.png), linear-gradient(#777, #444);
+	background: linear-gradient(#777, #444);
 	border-left: 1px solid #555;
 	border-right: 1px solid #777;
 	border-top: 1px solid #555;
@@ -79,11 +79,11 @@ td:last-child {
 }
 
 tr {
-	background: url(https://jackrugile.com/images/misc/noise-diagonal.png);
+	background: '';
 }
 
 tr:nth-child(odd) td {
-	background: #f1f1f1 url(https://jackrugile.com/images/misc/noise-diagonal.png);
+	background: #f1f1f1 ;
 }
 
 tr:last-of-type td {

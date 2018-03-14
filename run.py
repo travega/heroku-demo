@@ -84,6 +84,13 @@ if (REDIS_URL != ''):
     REDIS_CONN.expire('key', 300) # 5 minutes
     logger.info("{}  - Initialization done Redis" .format(datetime.now()))
 
+def __display_RedisContent():
+    for keys in REDIS_CONN.scan_iter():
+        logger.info(keys)
+    cacheData = __getCache('keys *')
+    if cacheData != None:
+        for entry in cacheData:
+            logger.info(entry)
 
 def __saveLogEntry(request):
     if (MANUAL_ENGINE_POSTGRES != None):
@@ -174,6 +181,7 @@ def root():
             __saveLogEntry(request)
 
         logger.debug(get_debug_all(request))
+        __display_RedisContent()
         """
         key = {'url' : request.url}
         tmp_dict = None
@@ -191,7 +199,7 @@ def root():
         
         return render_template(RENDER_INDEX,
                             entries=data_dict['data'])
-
+        
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -217,6 +225,11 @@ def getObjects():
     try: 
         if (__checkHerokuLogsTable()):
             __saveLogEntry(request)
+        # output type
+        output='html'
+        if 'output' in request.args:
+            output = request.args['output'].lower()
+        
         # logs all attributes received
         logger.debug(get_debug_all(request))
         # gets user agent
@@ -228,29 +241,38 @@ def getObjects():
         else:
             return "Error, must specify a object name with ?name=xxx", 404
             
-        key = {'url' : request.url}
+        key = {'url' : request.url, 'output' : output}
         tmp_dict = None
         data_dict = None
         tmp_dict = __getCache(key)
+        data = ""
         if ((tmp_dict == None) or (tmp_dict == '')):
             logger.info("Data not found in cache")
             data_dict  =__getObjects(object_name) 
-            if (HEROKU_LOGS_TABLE not in request.url): # we don't want to cache these logs
-                __setCache(key, ujson.dumps(data_dict), 300)
-        else:
-            logger.info("Data found in redis, using it directly")
-            data_dict = ujson.loads(tmp_dict)
 
-
-        if ('Mozilla' in user_agent):
-            logger.info("Treating request as a web request, output to Web page")
-            return render_template(RENDER_TABLE_DATA,
+            if (output == 'html'):
+                logger.info("Treating request as a web request, output to Web page")
+                data = render_template(RENDER_TABLE_DATA,
                             columns=data_dict['columns'],
                             object_name=object_name,
                             entries = data_dict['data'])
+            else:
+                logger.info("Treating request as an API request, output to Json only")
+                data = ujson.dumps(data_dict)
+
+            if (HEROKU_LOGS_TABLE not in request.url): # we don't want to cache these logs
+                __setCache(key, data.encode('utf-8'), 300)
+
         else:
-            logger.info("Treating request as an API request, output to Json only")
-            return data_dict, 200
+            logger.info("Data found in redis, using it directly")
+            if (output == 'html'):
+            #data_dict = ujson.loads(tmp_dict)
+                data = tmp_dict.decode('utf-8')
+            else:
+                data = ujson.loads(tmp_dict)
+
+
+        return data, 200
 
     except Exception as e:
         import traceback
