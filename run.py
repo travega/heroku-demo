@@ -2,10 +2,9 @@ from flask import Flask, request, redirect, url_for, render_template
 import os, logging, psycopg2 
 from datetime import datetime 
 import ujson
-import redis 
 import uuid
 from flask_bootstrap import Bootstrap
-from libs import postgres , utils , logs 
+from libs import postgres , utils , logs, rediscache
 
 RENDER_INDEX_BOOTSTRAP="index_bootstrap.html"
 RENDER_INDEX="index.html"
@@ -15,8 +14,7 @@ STATIC_URL_PATH = "static/"
 
 # environment variable
 PORT = os.getenv('PORT', '5000')
-REDIS_URL = os.getenv('REDIS_URL','')
-REDIS_CONN = None 
+
 
 
 app = Flask(__name__) 
@@ -29,31 +27,8 @@ logs.logger_init(loggername='app',
 
 logger = logs.logger 
 
-if (REDIS_URL != ''):
-    REDIS_CONN = redis.from_url(REDIS_URL)
-    REDIS_CONN.set('key','value')
-    REDIS_CONN.expire('key', 300) # 5 minutes
-    logger.info("{}  - Initialization done Redis" .format(datetime.now()))
 
-def __display_RedisContent():
-    for keys in REDIS_CONN.scan_iter():
-        logger.info(keys)
-    cacheData = __getCache('keys *')
-    if cacheData != None:
-        for entry in cacheData:
-            logger.info(entry)
 
-def __getCache(key):
-    if (REDIS_CONN != None):
-        logger.info('Reading in Redis')
-        return REDIS_CONN.get(key)
-    return None 
-
-def __setCache(key, data, ttl):
-    if (REDIS_CONN != None):
-        logger.info('Storing in Redis')
-        REDIS_CONN.set(key, data)
-        REDIS_CONN.expire(key, ttl)
 
 def get_debug_all(request):
     str_debug = '* url: {}\n* method:{}\n'.format(request.url, request.method)
@@ -72,7 +47,7 @@ def root():
             postgres.__saveLogEntry(request)
 
         logger.debug(get_debug_all(request))
-        __display_RedisContent()
+        rediscache.__display_RedisContent()
         """
         key = {'url' : request.url}
         tmp_dict = None
@@ -133,7 +108,7 @@ def getObjects():
         key = {'url' : request.url, 'output' : output}
         tmp_dict = None
         data_dict = None
-        tmp_dict = __getCache(key)
+        tmp_dict = rediscache.__getCache(key)
         data = ""
         if ((tmp_dict == None) or (tmp_dict == '')):
             logger.info("Data not found in cache")
@@ -150,7 +125,7 @@ def getObjects():
                 data = ujson.dumps(data_dict)
 
             if (postgres.HEROKU_LOGS_TABLE not in request.url): # we don't want to cache these logs
-                __setCache(key, data.encode('utf-8'), 300)
+                rediscache.__setCache(key, data.encode('utf-8'), 300)
 
         else:
             logger.info("Data found in redis, using it directly")
