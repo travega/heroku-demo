@@ -112,7 +112,7 @@ def getObjects():
         data = ""
         if ((tmp_dict == None) or (tmp_dict == '')):
             logger.info("Data not found in cache")
-            data_dict  =postgres.__getObjects(object_name) 
+            data_dict  = postgres.__getObjects(object_name) 
 
             if (output == 'html'):
                 logger.info("Treating request as a web request, output to Web page")

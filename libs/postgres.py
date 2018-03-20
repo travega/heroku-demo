@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime 
 import os 
 import uuid
-from libs import utils , logs 
+from libs import utils , logs , rediscache
 
 DATABASE_URL = os.getenv('DATABASE_URL','')
 MANUAL_ENGINE_POSTGRES = None
@@ -60,12 +60,22 @@ def __saveLogEntry(request):
                     'useragent':useragent} )    
 
 def __checkHerokuLogsTable():
-    hasDatabase = False
+    key = {'checkHerokuLogTables' : "True"}
+    tmp_dict = None
+    tmp_dict = rediscache.__getCache(key)
+    if ((tmp_dict == None) or (tmp_dict == '')):
+        logger.info("Data not found in cache : heroku log data not known")
+        hasDatabase = False
     
-    if (MANUAL_ENGINE_POSTGRES != None):
-       sqlRequest = 'SELECT EXISTS( SELECT * FROM information_schema.tables  WHERE table_schema = %(schema)s AND table_name = %(tablename)s ) '
-       result = MANUAL_ENGINE_POSTGRES.execute(sqlRequest, {'schema' : SALESFORCE_SCHEMA, 'tablename' : HEROKU_LOGS_TABLE} )
-       for entry in result:
-           logger.info(entry['exists'])
-           hasDatabase = entry['exists']
-    return hasDatabase
+        if (MANUAL_ENGINE_POSTGRES != None):
+            sqlRequest = 'SELECT EXISTS( SELECT * FROM information_schema.tables  WHERE table_schema = %(schema)s AND table_name = %(tablename)s ) '
+            result = MANUAL_ENGINE_POSTGRES.execute(sqlRequest, {'schema' : SALESFORCE_SCHEMA, 'tablename' : HEROKU_LOGS_TABLE} )
+            for entry in result:
+                logger.info(entry['exists'])
+                hasDatabase = entry['exists']
+            if (hasDatabase == True):
+                rediscache.__setCache(key, "True", 120)
+        return hasDatabase
+    else:
+        return True 
+    
