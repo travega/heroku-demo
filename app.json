@@ -42,7 +42,9 @@
       },
       "scripts": {
         "test-setup": "echo 'Running test script'",
-        "test": "python tests.py"
+        "test": "python tests.py",
+        "test": "echo second test",
+        "test": "echo third test"
       }
     }
   }
