@@ -1,4 +1,5 @@
 .ignore
+.pyc
 .vscode
 .idea
 .log
