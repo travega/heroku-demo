@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime 
 import os 
 import uuid
-import utils , logs 
+from libs import utils , logs 
 
 DATABASE_URL = os.getenv('DATABASE_URL','')
 MANUAL_ENGINE_POSTGRES = None

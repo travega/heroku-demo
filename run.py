@@ -5,7 +5,7 @@ import ujson
 import redis 
 import uuid
 from flask_bootstrap import Bootstrap
-import postgres , utils , logs 
+from libs import postgres , utils , logs 
 
 RENDER_INDEX_BOOTSTRAP="index_bootstrap.html"
 RENDER_INDEX="index.html"
