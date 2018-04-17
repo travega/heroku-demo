@@ -7,8 +7,8 @@ from flask_bootstrap import Bootstrap
 from libs import postgres , utils , logs, rediscache
 
 RENDER_INDEX_BOOTSTRAP="index_bootstrap.html"
-RENDER_INDEX="index.html"
-RENDER_TABLE_DATA="table_data.html"
+RENDER_INDEX="index_new.html"
+RENDER_TABLE_DATA="table_data_new.html"
 RENDER_TABLE_DATA_IMG="table_data_img.html"
 STATIC_URL_PATH = "static/"
 
