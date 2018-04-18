@@ -45,8 +45,9 @@
           }
         },
         "sf_max_daily_api_calls": 30000,
-        "access": "read_only",
-        "applied_at": "2018-04-18T07:17:14.254276Z",
+        "access": "read_write",
+        "upsert_field": "externalid__c",
+        "applied_at": "2018-04-18T09:54:26.329528Z",
         "sf_polling_seconds": 600,
         "sf_notify_enabled": false,
         "fields": {
