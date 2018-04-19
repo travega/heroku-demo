@@ -8,6 +8,9 @@ from libs import postgres , utils , logs, rediscache
 
 RENDER_INDEX_BOOTSTRAP="index_bootstrap.html"
 RENDER_INDEX="index_new.html"
+RENDER_BETS_MAIN="bets_main.html"
+RENDER_BETS_MATCHS="bets_matchs.html"
+RENDER_PLACE_BET="place_bet.html"
 RENDER_TABLE_DATA="table_data_new.html"
 RENDER_TABLE_DATA_IMG="table_data_img.html"
 STATIC_URL_PATH = "static/"
@@ -39,10 +42,19 @@ def get_debug_all(request):
     str_debug += '* Headers:\n'
     for entry in request.headers:
         str_debug = str_debug + '\t* {} = {}\n'.format(entry[0], entry[1])
+    str_debug += '* Form:\n'
+    for entry in request.form:
+        str_debug = str_debug + '\t* {} = {}\n'.format(entry, request.form[entry])        
     return str_debug
+
 
 @app.route('/', methods=['GET'])
 def root():
+    return tables()
+
+
+@app.route('/tables', methods=['GET'])
+def tables():
     try :
         if (postgres.__checkHerokuLogsTable()):
             postgres.__saveLogEntry(request)
@@ -73,6 +85,47 @@ def root():
         return "An error occured, check logDNA for more information", 200
 
 
+
+@app.route('/bets', methods=['POST'])
+def bet_vote():
+    if (postgres.__checkHerokuLogsTable()):
+        postgres.__saveLogEntry(request)
+    
+    logger.debug(get_debug_all(request))
+    
+    matchid = request.args['matchid']
+    winner = request.form['vote_winner']
+    useragent = request.headers['User-Agent']
+    gameactivity__c=request.args['gameactivity__c']
+
+    externalid = uuid.uuid4().__str__()
+    createddate  = datetime.now()
+
+    sqlRequest = """
+        insert into salesforce.bet__c (winner__c, 
+        useragent__c, 
+        name, 
+        externalid__c, 
+        match__c,
+        createddate) values 
+        ( %(winner)s, %(useragent)s, %(externalid)s, %(externalid)s, %(matchid)s, %(createddate)s ) """
+
+    
+    
+    postgres.MANUAL_ENGINE_POSTGRES.execute(sqlRequest,
+                {
+                'winner' : winner,
+                'useragent' : useragent,
+                'createddate':createddate,
+                'externalid' : externalid,
+                'matchid':matchid} )   
+
+
+
+    return redirect('/matchs?gameactivity__c='+gameactivity__c)
+    
+
+
 @app.route('/error', methods=['GET'])
 def error():
     if (postgres.__checkHerokuLogsTable()):
@@ -85,6 +138,121 @@ def error():
     if ('error_code' in request.args):
         error_code = int(request.args['error_code'])
     return "Error !!!!!!",error_code
+
+
+@app.route('/bets', methods=['GET'])
+def bets():
+    try:
+        if (postgres.__checkHerokuLogsTable()):
+            postgres.__saveLogEntry(request)
+        logger.debug(get_debug_all(request))
+        
+        key = {'url' : request.url}
+        tmp_dict = None
+        data_dict = None
+        tmp_dict = rediscache.__getCache(key)
+        if ((tmp_dict == None) or (tmp_dict == '')):
+            logger.info("Data not found in cache")
+            sqlRequest = """
+                select   
+                    salesforce.gameactivity__c.name , 
+                    salesforce.gameactivity__c.sfid, 
+                    (select count(*) from  salesforce.match__c where salesforce.match__c.gameactivity__c = salesforce.gameactivity__c.sfid) as nbMatchs 
+                from salesforce.gameactivity__c 
+
+                """
+            data_dict = postgres.__execRequest(sqlRequest, None)
+            
+            data = render_template(RENDER_BETS_MAIN,
+                columns=data_dict['columns'],
+                entries = data_dict['data'])
+
+            rediscache.__setCache(key, data, 60)
+        else:
+            logger.info("Data found in redis, using it directly")
+            data = tmp_dict
+            
+
+        return data, 200
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return "An error occured, check logDNA for more information", 200
+
+
+
+@app.route('/placebet', methods=['GET'])
+def bets_placebet():
+    try:
+        if (postgres.__checkHerokuLogsTable()):
+                postgres.__saveLogEntry(request)
+        logger.debug(get_debug_all(request))
+
+        key = {'url' : request.url}
+        tmp_dict = None
+        #data_dict = None
+        tmp_dict = rediscache.__getCache(key)
+        if ((tmp_dict == None) or (tmp_dict == '')):
+            logger.info("Data not found in cache")
+            #gameactivity__c = request.args['gameactivity__c']            
+            match_id = request.args['match_id']            
+            resultMatch = postgres.__getMatchById(match_id)
+            data = render_template(RENDER_PLACE_BET,
+                entry = resultMatch['data'][0]
+                )
+            rediscache.__setCache(key, data, 60)
+        else:
+            logger.info("Data found in redis, using it directly")
+            data = tmp_dict
+            
+
+        return data, 200
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return "An error occured, check logDNA for more information", 200
+
+@app.route('/matchs', methods=['GET'])
+def bets_bygameactivity__c():
+    try:
+        if (postgres.__checkHerokuLogsTable()):
+            postgres.__saveLogEntry(request)
+        logger.debug(get_debug_all(request))
+
+        key = {'url' : request.url}
+        tmp_dict = None
+        #data_dict = None
+        tmp_dict = rediscache.__getCache(key)
+        if ((tmp_dict == None) or (tmp_dict == '')):
+            logger.info("Data not found in cache")
+
+            gameactivity__c = request.args['gameactivity__c']            
+            resultActivityName = postgres.__getGameActivityById(gameactivity__c)
+            result = postgres.__getMatchsByGameActivityId(gameactivity__c)
+            
+
+            data = render_template(RENDER_BETS_MATCHS,
+                columns=result['columns'],
+                entries = result['data'],
+                category_name = resultActivityName['data'][0]['activityname'],
+                category_id = gameactivity__c
+                )
+                
+            rediscache.__setCache(key, data, 60)
+        else:
+            logger.info("Data found in redis, using it directly")
+            data = tmp_dict
+            
+
+        return data, 200
+
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return "An error occured, check logDNA for more information", 200
 
 
 @app.route('/getObjects', methods=['GET'])
@@ -133,7 +301,7 @@ def getObjects():
                 data = ujson.dumps(data_dict)
 
             if (postgres.HEROKU_LOGS_TABLE not in request.url): # we don't want to cache these logs
-                rediscache.__setCache(key, data.encode('utf-8'), 300)
+                rediscache.__setCache(key, data.encode('utf-8'), 60)
 
         else:
             logger.info("Data found in redis, using it directly")

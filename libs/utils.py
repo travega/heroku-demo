@@ -1,3 +1,4 @@
+import datetime
 
 
 def __resultToDict(result):
@@ -8,6 +9,10 @@ def __resultToDict(result):
         #logger.debug(entry)
         resDic = {}
         for column in column_names:
+            #if (isinstance(entry[column], datetime.date)):
+            #    print('Date found : ' + entry[column].__str__())
             resDic[column] = entry[column]
+
+            
         arrayData.append(resDic)
     return {'data' : arrayData, 'columns': column_names}

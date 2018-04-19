@@ -25,6 +25,72 @@ if (DATABASE_URL != ''):
     session_postgres = dbSession_postgres()
     logger.info("{} - Initialization done Postgresql ".format(datetime.now()))
 
+
+def __getGameActivityById(gameactivity__c):
+    sqlRequestActivityName = """
+            select gameactivity__c.name ActivityName
+            from 
+                salesforce.gameactivity__c  
+            where
+                 gameactivity__c.sfid = %(gameactivity__c)s """
+
+    resultActivityName = __execRequest(sqlRequestActivityName, {'gameactivity__c':gameactivity__c}) 
+    return resultActivityName
+
+def __getMatchsByGameActivityId(gameactivity__c):
+    sqlRequest = """select match__c.sfid matchid ,
+            match__c.date__c Date,
+            participant__c_home.name as Participant_Home,
+            participant__c_visitor.name Participant_Visitor
+            
+            from 
+                    salesforce.match__c match__c, 
+                    salesforce.participant__c participant__c_home , 
+                    salesforce.participant__c participant__c_visitor
+                    
+            where match__c.gameactivity__c =  %(gameactivity__c)s
+            and (participant__c_home.sfid = match__c.participant_home__c)
+            and (participant__c_visitor.sfid = match__c.participant_visitor__c)
+            
+            order by 
+            
+            match__c.date__c DESC"""
+    result = __execRequest(sqlRequest, {'gameactivity__c':gameactivity__c})
+    return result
+
+def __getMatchById(match_id):
+    sqlRequest = """select date__c , 
+       match__c.participant_home__c participant_home_id,
+       match__c.participant_visitor__c participant_visitor_id,
+       match__c.sfid match_id,
+       match__c.gameactivity__c gameactivity__c,
+       participant__home.name participant_home_name,
+       participant__home.image__c participant_home_image,
+       participant__home.description__c participant_home_description,
+       participant__visitor.name participant_visitor_name,
+       participant__visitor.image__c participant_visitor_image,
+       participant__visitor.description__c participant_visitor_description
+       
+        from salesforce.match__c, 
+            salesforce.participant__c participant__home,
+            salesforce.participant__c participant__visitor
+
+        where match__c.sfid= %(match_id)s 
+        and (participant__home.sfid = match__c.participant_home__c)
+        and (participant__visitor.sfid = match__c.participant_visitor__c)"""
+    result = __execRequest(sqlRequest, {'match_id':match_id})
+    return result
+
+
+
+def __execRequest(strReq, Attributes):
+    if (MANUAL_ENGINE_POSTGRES != None):
+        result = MANUAL_ENGINE_POSTGRES.execute(strReq, Attributes)
+        return utils.__resultToDict(result)
+    return {'data' : [], "columns": []}
+
+
+
 def __getObjects(tableName):
     if (MANUAL_ENGINE_POSTGRES != None):
         concat = SALESFORCE_SCHEMA + "." + tableName
@@ -74,7 +140,7 @@ def __checkHerokuLogsTable():
                 logger.info(entry['exists'])
                 hasDatabase = entry['exists']
             if (hasDatabase == True):
-                rediscache.__setCache(key, "True", 120)
+                rediscache.__setCache(key, "True", 3600)
         return hasDatabase
     else:
         return True 
