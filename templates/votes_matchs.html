@@ -103,9 +103,7 @@
                   <tr>
                       <th>Bets Category</th>
                       <th>Date</th>
-                      <th>Home</th>
-                      <th>Visitor</th>
-                      <th>Place Vote</th>
+                      <th>Home - Visitor</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -113,9 +111,8 @@
                   <tr>
                     <td>{{ category_name }}</td>
                     <td>{{ entry.date }} </td>
-                    <td>{{ entry.participant_home }} </td>
-                    <td>{{ entry.participant_visitor }} </td>
-                    <td><a href="../placevote?gameactivity__c={{ category_id }}&match_id={{ entry.matchid }}"> Place Vote </a> </td>
+                    <td><a href="../placevote?gameactivity__c={{ category_id }}&match_id={{ entry.matchid }}">{{ entry.participant_home }} - {{ entry.participant_visitor }}</a></td>
+                   
                   </tr>
                   {% endfor %}
                 </tbody>
