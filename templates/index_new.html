@@ -89,7 +89,7 @@
           <div class="col-md-6">
             <div class="panel panel-primary">
               <div class="panel-heading">
-                <h3 class="panel-title">Database Tables</h3>
+                <h3 class="panel-title">Database Tables - Schema Salesforce </h3>
                 <div class="pull-right">
                   <span class="clickable filter" data-toggle="tooltip" title="Toggle table filter" data-container="body">
                     <i class="glyphicon glyphicon-filter"></i>
@@ -102,13 +102,12 @@
               <table class="table table-hover" id="dev-table">
                 <thead>
                   <tr>
-                      <th>Database Name</th><th>Table</th><th>Data exploration</th>
+                      <th>Table</th><th>Data exploration</th>
                   </tr>
                 </thead>
                 <tbody>
                   {% for entry in entries %}
                   <tr>
-                    <td>{{ entry.table_schema }} </td>
                     <td>{{ entry.table_name }} </td>
                     <td><a href="../getObjects?name={{ entry.table_name }}&output=html"> View data </a> </td>
                   </tr>
