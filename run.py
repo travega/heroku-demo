@@ -202,7 +202,7 @@ def error():
 
 
 @app.route('/placevote', methods=['GET'])
-def bets_placevote():
+def votes_placevote():
     try:
         if (postgres.__checkHerokuLogsTable()):
                 postgres.__saveLogEntry(request)

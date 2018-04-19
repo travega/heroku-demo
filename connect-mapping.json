@@ -1,33 +1,30 @@
 {
   "mappings": [
     {
-      "object_name": "WinesAndSpirits__c",
+      "object_name": "Participant__c",
       "config": {
         "access": "read_only",
         "sf_notify_enabled": true,
         "sf_polling_seconds": 600,
         "sf_max_daily_api_calls": 30000,
         "fields": {
-          "Description__c": {},
-          "image__c": {},
-          "Name": {},
-          "LastModifiedDate": {},
-          "IsDeleted": {},
-          "SystemModstamp": {},
           "CreatedDate": {},
-          "Id": {}
+          "Id": {},
+          "IsDeleted": {},
+          "Name": {},
+          "SystemModstamp": {},
+          "image__c": {},
+          "Description__c": {}
         },
         "indexes": {
-          "LastModifiedDate": {
-            "unique": false
+          "Id": {
+            "unique": true
           },
           "SystemModstamp": {
             "unique": false
-          },
-          "Id": {
-            "unique": true
           }
-        }
+        },
+        "applied_at": "2018-04-18T21:54:48.688060Z"
       }
     },
     {
@@ -93,10 +90,126 @@
         },
         "applied_at": "2018-03-28T08:50:21.079683Z"
       }
+    },
+    {
+      "object_name": "WinesAndSpirits__c",
+      "config": {
+        "access": "read_only",
+        "sf_notify_enabled": true,
+        "sf_polling_seconds": 600,
+        "sf_max_daily_api_calls": 30000,
+        "fields": {
+          "Description__c": {},
+          "image__c": {},
+          "Name": {},
+          "LastModifiedDate": {},
+          "IsDeleted": {},
+          "SystemModstamp": {},
+          "CreatedDate": {},
+          "Id": {}
+        },
+        "indexes": {
+          "LastModifiedDate": {
+            "unique": false
+          },
+          "SystemModstamp": {
+            "unique": false
+          },
+          "Id": {
+            "unique": true
+          }
+        }
+      }
+    },
+    {
+      "object_name": "Bet__c",
+      "config": {
+        "access": "read_write",
+        "sf_notify_enabled": true,
+        "sf_polling_seconds": 600,
+        "sf_max_daily_api_calls": 30000,
+        "fields": {
+          "Winner__c": {},
+          "useragent__c": {},
+          "Name": {},
+          "IsDeleted": {},
+          "SystemModstamp": {},
+          "CreatedDate": {},
+          "Id": {},
+          "externalid__c": {},
+          "Match__c": {}
+        },
+        "indexes": {
+          "SystemModstamp": {
+            "unique": false
+          },
+          "Id": {
+            "unique": true
+          },
+          "externalid__c": {
+            "unique": true
+          }
+        },
+        "upsert_field": "externalid__c"
+      }
+    },
+    {
+      "object_name": "Match__c",
+      "config": {
+        "access": "read_only",
+        "sf_notify_enabled": true,
+        "sf_polling_seconds": 600,
+        "sf_max_daily_api_calls": 30000,
+        "fields": {
+          "Participant_Visitor__c": {},
+          "GameActivity__c": {},
+          "Name": {},
+          "IsDeleted": {},
+          "SystemModstamp": {},
+          "Date__c": {},
+          "CreatedDate": {},
+          "Participant_Home__c": {},
+          "Id": {}
+        },
+        "indexes": {
+          "SystemModstamp": {
+            "unique": false
+          },
+          "Id": {
+            "unique": true
+          }
+        },
+        "applied_at": "2018-04-19T07:15:04.734666Z"
+      }
+    },
+    {
+      "object_name": "GameActivity__c",
+      "config": {
+        "access": "read_only",
+        "sf_notify_enabled": true,
+        "sf_polling_seconds": 600,
+        "sf_max_daily_api_calls": 30000,
+        "fields": {
+          "CreatedDate": {},
+          "Id": {},
+          "IsDeleted": {},
+          "Name": {},
+          "SystemModstamp": {}
+        },
+        "indexes": {
+          "Id": {
+            "unique": true
+          },
+          "SystemModstamp": {
+            "unique": false
+          }
+        },
+        "applied_at": "2018-04-18T21:54:12.050401Z"
+      }
     }
   ],
   "connection": {
-    "exported_at": "2018-04-18T09:50:02.613974+00:00",
+    "exported_at": "2018-04-19T16:57:59.782551+00:00",
     "features": {
       "poll_db_no_merge": true,
       "poll_external_ids": false
