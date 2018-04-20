@@ -64,6 +64,7 @@ def __getMatchById(match_id):
        match__c.participant_visitor__c participant_visitor_id,
        match__c.sfid match_id,
        match__c.gameactivity__c gameactivity__c,
+       match__c.question__c question__c,
        participant__home.name participant_home_name,
        participant__home.image__c participant_home_image,
        participant__home.description__c participant_home_description,

@@ -217,6 +217,8 @@ def votes_placevote():
             #gameactivity__c = request.args['gameactivity__c']            
             match_id = request.args['match_id']            
             resultMatch = postgres.__getMatchById(match_id)
+            if (resultMatch['data'][0]['question__c'] == None):
+                resultMatch['data'][0]['question__c'] = ""
             data = render_template(RENDER_PLACE_BET,
                 entry = resultMatch['data'][0]
                 )

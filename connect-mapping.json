@@ -169,6 +169,7 @@
           "Date__c": {},
           "CreatedDate": {},
           "Participant_Home__c": {},
+          "question__c": {},
           "Id": {}
         },
         "indexes": {
