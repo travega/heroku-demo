@@ -11,7 +11,7 @@ RENDER_TABLES="index_new.html"
 RENDER_ROOT="index_root.html"
 RENDER_BETS_MAIN="votes_main.html"
 RENDER_BETS_MATCHS="votes_matchs.html"
-RENDER_PLACE_BET="votes_place.html"
+RENDER_PLACE_BET="votes_place_new.html"
 RENDER_TABLE_DATA="table_data_new.html"
 RENDER_TABLE_DATA_IMG="table_data_img.html"
 STATIC_URL_PATH = "static/"
@@ -124,12 +124,23 @@ def bet_vote():
             postgres.__saveLogEntry(request)
         logger.debug(get_debug_all(request))
 
-        print(request.method)
-        if (request.method == 'POST'):
+        # trick
+        # ?matchid={{ entry.match_id }}&gameactivity__c={{ entry.gameactivity__c }}&vote_winner={{ entry.participant_home_id}}
+        is_vote_through_get = False
+        if ('matchid' in request.args and 
+            'vote_winner' in request.args and
+            'gameactivity__c' in request.args):
+            is_vote_through_get = True
+
+        if (request.method == 'POST' or is_vote_through_get == True):
             matchid = request.args['matchid']
-            winner = request.form['vote_winner']
-            useragent = request.headers['User-Agent']
             gameactivity__c=request.args['gameactivity__c']
+            if (is_vote_through_get):
+                winner = request.args['vote_winner']
+            else:
+                winner = request.form['vote_winner']
+            useragent = request.headers['User-Agent']
+            
 
             externalid = uuid.uuid4().__str__()
             createddate  = datetime.now()
@@ -150,6 +161,7 @@ def bet_vote():
                         'createddate':createddate,
                         'externalid' : externalid,
                         'matchid':matchid} )   
+            logger.info('##### vote taken into account ####')
             return redirect('/matchs?gameactivity__c='+gameactivity__c)
         else:            
             key = {'url' : request.url}
