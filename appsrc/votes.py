@@ -58,6 +58,9 @@ def bets_bygameactivity__c():
         tmp_dict = None
         #data_dict = None
         tmp_dict = rediscache.__getCache(key)
+        has_voted = False
+        if ('has_voted' in request.args):
+            has_voted = bool(request.args['has_voted'])
         if ((tmp_dict == None) or (tmp_dict == '')):
             logger.info("Data not found in cache")
 
@@ -70,7 +73,8 @@ def bets_bygameactivity__c():
                 columns=result['columns'],
                 entries = result['data'],
                 category_name = resultActivityName['data'][0]['activityname'],
-                category_id = gameactivity__c
+                category_id = gameactivity__c,
+                hasvoted = has_voted
                 )
 
             rediscache.__setCache(key, data, 60)
@@ -86,8 +90,6 @@ def bets_bygameactivity__c():
         import traceback
         traceback.print_exc()
         return "An error occured, check logDNA for more information", 200
-
-
 
 
 @app.route('/votes', methods=['POST', 'GET'])
@@ -136,7 +138,7 @@ def bet_vote():
                         'externalid' : externalid,
                         'matchid':matchid} )   
             logger.info('##### vote taken into account ####')
-            return redirect('/matchs?gameactivity__c='+gameactivity__c)
+            return redirect('/matchs?gameactivity__c='+gameactivity__c+"&has_voted=True")
         else:            
             key = {'url' : request.url}
             tmp_dict = None

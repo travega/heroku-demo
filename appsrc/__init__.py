@@ -7,13 +7,14 @@ from flask_bootstrap import Bootstrap
 from libs import postgres , utils , logs, rediscache
 
 
-STATIC_URL_PATH = "../templates"
+TEMPLATES_URL = "../templates"
+STATIC_URL = "../static"
 # environment variable
 WEBPORT = os.getenv('PORT', '5000')
 
 
 
-app = Flask(__name__, template_folder=STATIC_URL_PATH) 
+app = Flask(__name__, template_folder=TEMPLATES_URL, static_folder=STATIC_URL) 
 Bootstrap(app)
 
 logs.logger_init(loggername='app',
