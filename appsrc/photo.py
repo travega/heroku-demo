@@ -17,14 +17,14 @@ def image():
         if (postgres.__checkHerokuLogsTable()):
             postgres.__saveLogEntry(request)
         logger.debug(utils.get_debug_all(request))
-        
+        imageid = request.args['id']
         i = request.files['fileToUpload']  # get the image
-        f = ('%s.jpeg' % time.strftime("%Y%m%d-%H%M%S"))
+        f = ('%s.jpeg' % (imageid))
         i.save('%s/%s' % (PATH_TO_TEST_IMAGES_DIR, f))
         completeFilename = '%s/%s' % (PATH_TO_TEST_IMAGES_DIR, f)
         # now upload
         logger.debug(completeFilename)
-        aws.uploadData(completeFilename)
+        aws.uploadData(completeFilename, f)
         return "File received, thanks for sharing.." , 200
     except Exception as e:
         import traceback

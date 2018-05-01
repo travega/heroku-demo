@@ -19,11 +19,11 @@ logger.debug(BUCKETEER_BUCKET_NAME)
 
 s3 = boto3.client('s3',aws_access_key_id=BUCKETEER_AWS_ACCESS_KEY_ID,aws_secret_access_key=BUCKETEER_AWS_SECRET_ACCESS_KEY)
 
-def uploadData(filename):
+def uploadData(localfilename, remotefilename):
     try:
         bucket_name = BUCKETEER_BUCKET_NAME
-        s3.upload_file(filename, bucket_name, 'public/' + filename)
-        url ="https://"+BUCKETEER_BUCKET_NAME + '.s3.' + BUCKETEER_AWS_REGION + '.amazonaws.com/' + 'public/' + filename
+        s3.upload_file(localfilename, bucket_name, 'public/' + remotefilename)
+        url ="https://"+BUCKETEER_BUCKET_NAME + '.s3.' + BUCKETEER_AWS_REGION + '.amazonaws.com/' + 'public/' + remotefilename
         logger.debug(url)
         return url
     except Exception as e:
