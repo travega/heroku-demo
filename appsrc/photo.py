@@ -9,6 +9,7 @@ from appsrc import app, logger
 import time 
 
 RENDER_ROOT_PHOTO="photo_main.html"
+RENDER_ROOT_PHOTO_THANKS="photo_main_thanks.html"
 PATH_TO_TEST_IMAGES_DIR = './images'
 
 @app.route('/photos_post', methods=['POST'])
@@ -24,8 +25,9 @@ def image():
         completeFilename = '%s/%s' % (PATH_TO_TEST_IMAGES_DIR, f)
         # now upload
         logger.debug(completeFilename)
-        aws.uploadData(completeFilename, f)
-        return "File received, thanks for sharing.." , 200
+        awsFilename = aws.uploadData(completeFilename, f)
+
+        return "File received, thanks for sharing!  : You can review it here : " + awsFilename  , 200
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -40,21 +42,7 @@ def root_photo():
             postgres.__saveLogEntry(request)
         logger.debug(utils.get_debug_all(request))
 
-        key = {'url' : request.url}
-        tmp_dict = None
-        #data_dict = None
-        tmp_dict = rediscache.__getCache(key)
-        if ((tmp_dict == None) or (tmp_dict == '')):
-            logger.info("Data not found in cache")
-
-
-            data = render_template(RENDER_ROOT_PHOTO, imageid =  uuid.uuid4().__str__())
-
-            rediscache.__setCache(key, data, 60)
-        else:
-            logger.info("Data found in redis, using it directly")
-            data = tmp_dict
-            
+        data = render_template(RENDER_ROOT_PHOTO, imageid =  uuid.uuid4().__str__())
 
         return data, 200
     except Exception as e:
